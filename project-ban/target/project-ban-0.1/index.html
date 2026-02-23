@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>BAN - Test</title></head>
+<body>
+  <h1>BAN - Test</h1>
+
+  <button onclick="loadStations()">GET Stations</button>
+  <pre id="stations"></pre>
+
+  <h2>Subscribe client</h2>
+  <p>Phone: <input id="phone" value="+34653004213"></p>
+  <p>Station IDs (comma): <input id="stationIds" value="1,2"></p>
+  <p>Telegram token: <input id="token" value="dummy"></p>
+  <p>Chat id: <input id="chat" value="dummy"></p>
+  <button onclick="subscribe()">POST Subscribe</button>
+  <pre id="subscribeOut"></pre>
+
+  <button onclick="loadClients()">GET Clients</button>
+  <pre id="clients"></pre>
+
+<script>
+async function loadStations() {
+  const r = await fetch('/project-ban-0.1/ban/stations');
+  document.getElementById('stations').textContent = await r.text();
+}
+
+async function subscribe() {
+  const phone = document.getElementById('phone').value;
+  const stationIds = document.getElementById('stationIds').value.split(',').map(x => parseInt(x.trim()));
+  const telegramToken = document.getElementById('token').value;
+  const telegramChatId = document.getElementById('chat').value;
+
+  const payload = { phone, stationIds, telegramToken, telegramChatId };
+
+  const r = await fetch('/project-ban-0.1/ban/clients/subscribe', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+
+  document.getElementById('subscribeOut').textContent = await r.text();
+}
+
+async function loadClients() {
+  const r = await fetch('/project-ban-0.1/ban/clients');
+  document.getElementById('clients').textContent = await r.text();
+}
+</script>
+</body>
+</html>

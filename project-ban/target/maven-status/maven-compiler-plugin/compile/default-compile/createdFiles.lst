@@ -1,0 +1,6 @@
+upf/at/ban/service/StationCacheService.class
+upf/at/ban/model/Station.class
+upf/at/ban/api/ClientsResource.class
+upf/at/ban/store/ClientStore.class
+upf/at/ban/api/StationsResource.class
+upf/at/ban/model/ClientProfile.class
