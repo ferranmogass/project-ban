@@ -14,6 +14,8 @@ import upf.at.ban.service.StationCacheService;
 @Produces(MediaType.APPLICATION_JSON)
 public class StationsResource {
 
+    // Add this annotation here to create a sub-path /list
+    @Path("/list")
     @GET
     public List<Station> getStations() {
         return StationCacheService.getStations();
