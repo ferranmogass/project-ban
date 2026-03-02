@@ -25,7 +25,7 @@
   
 async function loadStations() {
   <!-- Enviar un GET a ban/station i posa el resultat dins de stations -->
-  const r = await fetch('/project-ban-0.1/ban/stations');
+  const r = await fetch('/project-ban-0.1/ban/stations/list');
   document.getElementById('stations').textContent = await r.text();
 }
 
