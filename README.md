@@ -12,11 +12,14 @@ project-ban
 │  │     │        └─ ban
 │  │     │           ├─ api
 │  │     │           │  ├─ ClientsResource.java
+│  │     │           │  ├─ NotifierResource.java
 │  │     │           │  └─ StationsResource.java
 │  │     │           ├─ model
 │  │     │           │  ├─ ClientProfile.java
+│  │     │           │  ├─ Data.java
 │  │     │           │  └─ Station.java
 │  │     │           ├─ service
+│  │     │           │  ├─ NotifierService.java
 │  │     │           │  └─ StationCacheService.java
 │  │     │           └─ store
 │  │     │              └─ ClientStore.java
@@ -31,11 +34,16 @@ project-ban
 │     │        └─ ban
 │     │           ├─ api
 │     │           │  ├─ ClientsResource.class
+│     │           │  ├─ NotifierResource$TelegramMessage.class
+│     │           │  ├─ NotifierResource.class
 │     │           │  └─ StationsResource.class
 │     │           ├─ model
 │     │           │  ├─ ClientProfile.class
+│     │           │  ├─ Data.class
 │     │           │  └─ Station.class
 │     │           ├─ service
+│     │           │  ├─ NotifierService.class
+│     │           │  ├─ StationCacheService$1.class
 │     │           │  └─ StationCacheService.class
 │     │           └─ store
 │     │              └─ ClientStore.class

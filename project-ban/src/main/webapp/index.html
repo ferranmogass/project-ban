@@ -1,35 +1,55 @@
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>BAN - Test</title></head>
+<head>
+  <meta charset="utf-8">
+  <title>BAN - Test</title>
+</head>
 <body>
-  <!-- Les tres accions -->
-  <h1>BAN - Test</h1>
+<h1>BAN - Test</h1>
 
-  <button onclick="loadStations()">GET Stations</button>
-  <pre id="stations"></pre> 
+<!-- Stations -->
+<button onclick="loadStations()">GET Stations</button>
+<pre id="stations"></pre> 
 
-  <h2>Subscribe client</h2>
-  <!--Construir el JSON -->
-  <p>Phone: <input id="phone" value="+34653004213"></p>
-  <p>Station IDs (comma): <input id="stationIds" value="1,2"></p>
-  <p>Telegram token: <input id="token" value="dummy"></p>
-  <p>Chat id: <input id="chat" value="dummy"></p>
+<!-- Subscribe Client -->
+<h2>Subscribe client</h2>
+<p>Phone: <input id="phone" value="+34653004213"></p>
+<p>Station IDs (comma): <input id="stationIds" value="1,2"></p>
+<p>Telegram token: <input id="token" value="dummy"></p>
+<p>Chat id: <input id="chat" value="dummy"></p>
+<button onclick="subscribe()">POST Subscribe</button>
+<pre id="subscribeOut"></pre>
 
-  <button onclick="subscribe()">POST Subscribe</button>
-  <pre id="subscribeOut"></pre>
+<!-- Get Clients -->
+<button onclick="loadClients()">GET Clients</button>
+<pre id="clients"></pre>
 
-  <button onclick="loadClients()">GET Clients</button>
-  <pre id="clients"></pre>
+<!-- Notify Slots -->
+<h2>Notify Free Slots</h2>
+<button onclick="notifySlots()">POST Notify Slots</button>
+<pre id="slots"></pre>
+
+<!-- Notify Air Quality -->
+<h2>Notify Air Quality</h2>
+<p>Phone: <input id="aqPhone" value="+34653004213"></p>
+<button onclick="notifyAirQuality()">POST Notify AQI</button>
+<pre id="aqi"></pre>
+
+<!-- Optional: Test Telegram -->
+<button onclick="testTelegram()">Test Telegram</button>
+<pre id="testTelegram"></pre>
 
 <script>
-  
+const BASE_URL = '/project-ban-0.1/ban';
+
+// -------------------- Stations --------------------
 async function loadStations() {
-  <!-- Enviar un GET a ban/station i posa el resultat dins de stations -->
-  const r = await fetch('/project-ban-0.1/ban/stations/list');
-  document.getElementById('stations').textContent = await r.text();
+  const r = await fetch(BASE_URL + '/stations/list');
+  const data = await r.json();
+  document.getElementById('stations').textContent = JSON.stringify(data, null, 2);
 }
 
-
+// -------------------- Subscribe --------------------
 async function subscribe() {
   const phone = document.getElementById('phone').value;
   const stationIds = document.getElementById('stationIds').value.split(',').map(x => parseInt(x.trim()));
@@ -38,18 +58,43 @@ async function subscribe() {
 
   const payload = { phone, stationIds, telegramToken, telegramChatId };
 
-  const r = await fetch('/project-ban-0.1/ban/clients/subscribe', {
+  const r = await fetch(BASE_URL + '/clients/subscribe', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(payload)
   });
 
-  document.getElementById('subscribeOut').textContent = await r.text();
+  const data = await r.json();
+  document.getElementById('subscribeOut').textContent = JSON.stringify(data, null, 2);
 }
 
+// -------------------- Clients --------------------
 async function loadClients() {
-  const r = await fetch('/project-ban-0.1/ban/clients');
-  document.getElementById('clients').textContent = await r.text();
+  const r = await fetch(BASE_URL + '/clients');
+  const data = await r.json();
+  document.getElementById('clients').textContent = JSON.stringify(data, null, 2);
+}
+
+// -------------------- Notify Slots --------------------
+async function notifySlots() {
+  const r = await fetch(BASE_URL + '/notifier/slots', { method: 'POST' });
+  const data = await r.json();
+  document.getElementById('slots').textContent = JSON.stringify(data, null, 2);
+}
+
+// -------------------- Notify Air Quality --------------------
+async function notifyAirQuality() {
+  const phone = document.getElementById('aqPhone').value;
+  const r = await fetch(BASE_URL + '/notifier/airquality?phone=' + encodeURIComponent(phone));
+  const data = await r.json();
+  document.getElementById('aqi').textContent = JSON.stringify(data, null, 2);
+}
+
+// -------------------- Test Telegram --------------------
+async function testTelegram() {
+  const r = await fetch(BASE_URL + '/notifier/test', { method: 'POST' });
+  const data = await r.json();
+  document.getElementById('testTelegram').textContent = JSON.stringify(data, null, 2);
 }
 </script>
 </body>

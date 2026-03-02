@@ -4,7 +4,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.GET;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
@@ -39,32 +44,58 @@ public class NotifierResource {
     @POST
     @Path("/slots")
     public Response notifySlots() {
-        List<Station> stations = StationCacheService.getStations(); // get cached or mocked stations
+
+        List<Station> stations = StationCacheService.getStations();
+
+        List<Map<String, Object>> notifications = new ArrayList<>();
 
         for (ClientProfile client : ClientStore.list()) {
+
             StringBuilder message = new StringBuilder("Bicing free slots:\n");
 
+            Map<String, Object> clientResult = new HashMap<>();
+            clientResult.put("phone", client.phone);
+
+            List<Map<String, Object>> stationResults = new ArrayList<>();
+
             for (Integer stationId : client.stationIds) {
-                // Find the station in the cached list
+
                 Station s = stations.stream()
                                     .filter(st -> st.id == stationId)
                                     .findFirst()
                                     .orElse(null);
+
+                Map<String, Object> stationMap = new HashMap<>();
+                stationMap.put("stationId", stationId);
+
                 if (s != null) {
                     message.append("Station ").append(s.id)
-                           .append(": ").append(s.freeSlots)
-                           .append(" free bikes\n");
+                        .append(": ").append(s.freeSlots)
+                        .append(" free slots\n");
+
+                    stationMap.put("freeSlots", s.freeSlots);
                 } else {
                     message.append("Station ").append(stationId)
-                           .append(": not found\n");
+                        .append(": not found\n");
+
+                    stationMap.put("error", "not found");
                 }
+
+                stationResults.add(stationMap);
             }
 
             // Send Telegram message
             sendTelegram(client.telegramToken, client.telegramChatId, message.toString());
+
+            clientResult.put("stations", stationResults);
+            notifications.add(clientResult);
         }
 
-        return Response.ok("{\"status\":\"sent\"}").build();
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "sent");
+        response.put("notifications", notifications);
+
+        return Response.ok(response).build();
     }
 
     // Send air quality for a client
@@ -86,10 +117,21 @@ public class NotifierResource {
                             .build();
             }
 
+            //sendTelegram(client.telegramToken, client.telegramChatId,
+                        //"Air quality in " + city + ": " + aqi + " (" + aqiText + ")");
+
+            //return Response.ok("{\"status\":\"sent\"}").build();
             sendTelegram(client.telegramToken, client.telegramChatId,
                         "Air quality in " + city + ": " + aqi + " (" + aqiText + ")");
 
-            return Response.ok("{\"status\":\"sent\"}").build();
+            // Build JSON response
+            Map<String, Object> result = new HashMap<>();
+            result.put("phone", phone);
+            result.put("city", city);
+            result.put("aqi", aqi);
+            result.put("description", aqiText);
+
+            return Response.ok(result).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                         .entity("{\"error\":\"" + e.getMessage() + "\"}")
@@ -101,25 +143,30 @@ public class NotifierResource {
     private static final String AQI_API_TOKEN = "40d4f67b59e39fd2c4e40caabab3bd244fd9ea54"; // your token from aqicn.org
 
     public int getAQIForCity(String city) throws Exception {
+
+        if (city == null || city.isEmpty()) {
+            throw new Exception("City is null");
+        }
+
         Client client = ClientBuilder.newClient();
 
-        // Construct the request URL
-        String url = AQI_API_BASE + "/" + city + "/?token=" + AQI_API_TOKEN;
+        String encodedCity = URLEncoder.encode(city, StandardCharsets.UTF_8.toString());
+
+        String url = AQI_API_BASE + "/" + encodedCity + "/?token=" + AQI_API_TOKEN;
 
         WebTarget target = client.target(url);
 
-        // Make GET request and get JSON as string
         String responseBody = target.request(MediaType.APPLICATION_JSON_TYPE)
                                     .get(String.class);
 
-        // Parse the JSON with Jackson
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(responseBody);
 
-        // The actual AQI value path in the JSON (adjust if your API returns a different structure)
-        int aqi = root.path("data").path("aqi").asInt();
+        if (!root.path("status").asText().equals("ok")) {
+            throw new Exception("AQI API error: " + root.path("data").asText());
+        }
 
-        return aqi;
+        return root.path("data").path("aqi").asInt();
     }
 
     private String aqiToText(int aqi) {
@@ -146,7 +193,8 @@ public class NotifierResource {
     }
 
     private String getCityFromIP(String ip) {
-        try {
+        return "barcelona"; // For testing, we hardcode to Barcelona. In production, we would call an IP geolocation API.
+        /*try {
             Client client = ClientBuilder.newClient();
             WebTarget target = client.target("http://ip-api.com/json/" + ip);
             String response = target.request().get(String.class);
@@ -163,7 +211,7 @@ public class NotifierResource {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
-        }
+        }*/
     }
 
     @Context

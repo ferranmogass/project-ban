@@ -1,11 +1,15 @@
 package upf.at.ban.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import upf.at.ban.model.Data;
 import upf.at.ban.model.Station;
@@ -46,24 +50,37 @@ public class StationCacheService {
     private static List<Station> fetchFromBicing() {
         try {
             String bicingURL = "https://opendata-ajuntament.barcelona.cat/data/dataset/6aa3416d-ce1a-494d-861b-7bd07f069600/resource/1b215493-9e63-4a12-8980-2d7e0fa19f85/download";
-            String token = "YOUR_BICING_TOKEN"; // <-- replace with your actual token
+            String token = "YOUR_REAL_TOKEN_HERE";
 
             Client client = ClientBuilder.newClient();
-            WebTarget target = client.target(bicingURL);
 
-            // Parse directly into Data object, which contains List<Station>
-            Data data = target.request(MediaType.APPLICATION_JSON_TYPE)
-                    .header("Authorization", token)
-                    .get(new GenericType<Data>() {});
+            String response = client.target(bicingURL)
+                    .request(MediaType.APPLICATION_JSON_TYPE)
+                    .header("Authorization", "Bearer " + token)
+                    .get(String.class);
 
-            // Return list of stations
-            return data.getStations();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(response);
+
+            List<Station> stations = new ArrayList<>();
+
+            JsonNode stationsNode = root.path("data").path("stations");
+
+            for (JsonNode node : stationsNode) {
+
+                int id = node.path("station_id").asInt();
+                String name = node.path("name").asText();
+                int freeSlots = node.path("num_bikes_available").asInt();
+                int numDocks = node.path("num_docks_available").asInt();
+
+                stations.add(new Station(id, name, freeSlots, numDocks));
+            }
+
+            return stations;
 
         } catch (Exception e) {
-            System.err.println("Error fetching stations from Bicing API: " + e.getMessage());
+            System.err.println("Error fetching stations: " + e.getMessage());
             e.printStackTrace();
-
-            // Return empty list if API fails
             return List.of();
         }
     }
