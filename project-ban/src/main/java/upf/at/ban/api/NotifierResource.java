@@ -92,7 +92,6 @@ public class NotifierResource {
         }
 
         Map<String, Object> response = new HashMap<>();
-        response.put("status", "sent");
         response.put("notifications", notifications);
 
         return Response.ok(response).build();
@@ -117,10 +116,6 @@ public class NotifierResource {
                             .build();
             }
 
-            //sendTelegram(client.telegramToken, client.telegramChatId,
-                        //"Air quality in " + city + ": " + aqi + " (" + aqiText + ")");
-
-            //return Response.ok("{\"status\":\"sent\"}").build();
             sendTelegram(client.telegramToken, client.telegramChatId,
                         "Air quality in " + city + ": " + aqi + " (" + aqiText + ")");
 
@@ -193,7 +188,8 @@ public class NotifierResource {
     }
 
     private String getCityFromIP(String ip) {
-        return "barcelona"; // For testing, we hardcode to Barcelona. In production, we would call an IP geolocation API.
+        // For testing we hardcode barcelona since running the app in localhost won't find us a valid city with our IP (that being localhost).
+        return "barcelona";
         /*try {
             Client client = ClientBuilder.newClient();
             WebTarget target = client.target("http://ip-api.com/json/" + ip);
