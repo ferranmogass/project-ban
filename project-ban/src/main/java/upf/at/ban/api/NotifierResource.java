@@ -71,7 +71,8 @@ public class NotifierResource {
                 if (s != null) {
                     message.append("Station ").append(s.id)
                         .append(": ").append(s.freeSlots)
-                        .append(" free slots\n");
+                        .append(" free slots")
+                        .append(". Temp: ").append(StationCacheService.fetchTemperature(s.lat, s.lon)).append("°C\n");
 
                     stationMap.put("freeSlots", s.freeSlots);
                     stationMap.put("stationTemp", StationCacheService.fetchTemperature(s.lat, s.lon));
@@ -190,8 +191,8 @@ public class NotifierResource {
 
     private String getCityFromIP(String ip) {
         // For testing we hardcode barcelona since running the app in localhost won't find us a valid city with our IP (that being localhost).
-        //return "barcelona"; testing
-        try {
+        return "barcelona";
+        /*try {
             Client client = ClientBuilder.newClient();
             WebTarget target = client.target("http://ip-api.com/json/" + ip);
             String response = target.request().get(String.class);
@@ -208,7 +209,7 @@ public class NotifierResource {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
-        }
+        }*/
     }
 
     @Context
@@ -236,10 +237,8 @@ public class NotifierResource {
     @POST
     @Path("/test")
     public Response testTelegram() {
-
-        String token = "YOUR_BOT_TOKEN";
-        String chatId = "YOUR_CHAT_ID";
-
+        String token = "8086669859:AAGz3z4Fj0B4jY_MrNc5pzzJYd_R6wk74TU"; 
+        String chatId = "8634431405";
         sendTelegram(token, chatId, "Hello from BAN server 🚀");
 
         return Response.ok("{\"status\":\"sent\"}").build();
