@@ -190,8 +190,8 @@ public class NotifierResource {
 
     private String getCityFromIP(String ip) {
         // For testing we hardcode barcelona since running the app in localhost won't find us a valid city with our IP (that being localhost).
-        return "barcelona";
-        /*try {
+        //return "barcelona"; testing
+        try {
             Client client = ClientBuilder.newClient();
             WebTarget target = client.target("http://ip-api.com/json/" + ip);
             String response = target.request().get(String.class);
@@ -208,7 +208,7 @@ public class NotifierResource {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
-        }*/
+        }
     }
 
     @Context
