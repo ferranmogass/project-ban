@@ -5,6 +5,7 @@
   <title>BAN - Test</title>
 </head>
 <body>
+
 <h1>BAN - Test</h1>
 
 <!-- Stations -->
@@ -12,15 +13,17 @@
 <pre id="stations"></pre> 
 
 <!-- Subscribe Client -->
-<h2>Subscribe client</h2>
+<h2>Subscribe client (with Age Verification)</h2>
 <p>Phone: <input id="phone" value="+34653004213"></p>
 <p>Station IDs (comma): <input id="stationIds" value="1,2"></p>
 <p>Telegram token: <input id="token" value="dummy"></p>
 <p>Chat id: <input id="chat" value="dummy"></p>
+
 <button onclick="subscribe()">POST Subscribe</button>
 <pre id="subscribeOut"></pre>
 
 <!-- Get Clients -->
+<h2>Registered Clients</h2>
 <button onclick="loadClients()">GET Clients</button>
 <pre id="clients"></pre>
 
@@ -36,66 +39,126 @@
 <pre id="aqi"></pre>
 
 <!-- Optional: Test Telegram -->
+<h2>Test Telegram</h2>
 <button onclick="testTelegram()">Test Telegram</button>
 <pre id="testTelegram"></pre>
 
 <script>
+
 const BASE_URL = '/project-ban-0.1/ban';
+
 
 // -------------------- Stations --------------------
 async function loadStations() {
+
   const r = await fetch(BASE_URL + '/stations/list');
+
   const data = await r.json();
-  document.getElementById('stations').textContent = JSON.stringify(data, null, 2);
+
+  document.getElementById('stations').textContent =
+    JSON.stringify(data, null, 2);
 }
+
 
 // -------------------- Subscribe --------------------
 async function subscribe() {
+
   const phone = document.getElementById('phone').value;
-  const stationIds = document.getElementById('stationIds').value.split(',').map(x => parseInt(x.trim()));
+
+  const stationIds =
+    document.getElementById('stationIds')
+    .value
+    .split(',')
+    .map(x => parseInt(x.trim()));
+
   const telegramToken = document.getElementById('token').value;
   const telegramChatId = document.getElementById('chat').value;
 
-  const payload = { phone, stationIds, telegramToken, telegramChatId };
+  const payload = {
+    phone,
+    stationIds,
+    telegramToken,
+    telegramChatId
+  };
 
   const r = await fetch(BASE_URL + '/clients/subscribe', {
+
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+
+    headers: {
+      'Content-Type': 'application/json'
+    },
+
     body: JSON.stringify(payload)
   });
 
-  const data = await r.json();
-  document.getElementById('subscribeOut').textContent = JSON.stringify(data, null, 2);
+  let text = await r.text();
+
+  try {
+    text = JSON.stringify(JSON.parse(text), null, 2);
+  } catch(e) {}
+
+  document.getElementById('subscribeOut').textContent = text;
 }
+
 
 // -------------------- Clients --------------------
 async function loadClients() {
+
   const r = await fetch(BASE_URL + '/clients');
+
   const data = await r.json();
-  document.getElementById('clients').textContent = JSON.stringify(data, null, 2);
+
+  document.getElementById('clients').textContent =
+    JSON.stringify(data, null, 2);
 }
+
 
 // -------------------- Notify Slots --------------------
 async function notifySlots() {
-  const r = await fetch(BASE_URL + '/notifier/slots', { method: 'POST' });
+
+  const r = await fetch(BASE_URL + '/notifier/slots', {
+    method: 'POST'
+  });
+
   const data = await r.json();
-  document.getElementById('slots').textContent = JSON.stringify(data, null, 2);
+
+  document.getElementById('slots').textContent =
+    JSON.stringify(data, null, 2);
 }
+
 
 // -------------------- Notify Air Quality --------------------
 async function notifyAirQuality() {
+
   const phone = document.getElementById('aqPhone').value;
-  const r = await fetch(BASE_URL + '/notifier/airquality?phone=' + encodeURIComponent(phone));
+
+  const r = await fetch(
+    BASE_URL + '/notifier/airquality?phone=' +
+    encodeURIComponent(phone)
+  );
+
   const data = await r.json();
-  document.getElementById('aqi').textContent = JSON.stringify(data, null, 2);
+
+  document.getElementById('aqi').textContent =
+    JSON.stringify(data, null, 2);
 }
+
 
 // -------------------- Test Telegram --------------------
 async function testTelegram() {
-  const r = await fetch(BASE_URL + '/notifier/test', { method: 'POST' });
+
+  const r = await fetch(BASE_URL + '/notifier/test', {
+    method: 'POST'
+  });
+
   const data = await r.json();
-  document.getElementById('testTelegram').textContent = JSON.stringify(data, null, 2);
+
+  document.getElementById('testTelegram').textContent =
+    JSON.stringify(data, null, 2);
 }
+
 </script>
+
 </body>
 </html>

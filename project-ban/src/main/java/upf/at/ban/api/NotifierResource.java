@@ -74,6 +74,7 @@ public class NotifierResource {
                         .append(" free slots\n");
 
                     stationMap.put("freeSlots", s.freeSlots);
+                    stationMap.put("stationTemp", StationCacheService.fetchTemperature(s.lat, s.lon));
                 } else {
                     message.append("Station ").append(stationId)
                         .append(": not found\n");
